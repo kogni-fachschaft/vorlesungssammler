@@ -1,0 +1,4 @@
+auswertung/data/*
+auswertung/output/*
+*.pdf
+*.txt
