@@ -30,14 +30,14 @@ ids = [item for sublist in ids for item in sublist]
 vorlesungen["Ids"] = ids
 
 # Moduls and identifiers
-bachelor = [("Pflichtmodul Philosophie", "pphilobsc"), 
-            ("Pflichtmodul Linguistik", "plingubsc"), 
-            ("Wahlpflichtmodul Informatik", "wpinfobsc"), 
+bachelor = [("Pflichtmodul Philosophie", "pphilobsc"),
+            ("Pflichtmodul Linguistik", "plingubsc"),
+            ("Wahlpflichtmodul Informatik", "wpinfobsc"),
             ("Wahlpflichtmodul Kognitionswissenschaft", "wpkognibsc")]
 
 master = [("Kognitive Informatik", "koginfmsc"),
           ("Kognitive Neurowissenschaft", "kogneuromsc"),
-          ("Kognitionspsychologie", "kogpsychmsc"), 
+          ("Kognitionspsychologie", "kogpsychmsc"),
           ("Linguistik und Philosophie", "koglingmsc")]
 
 # Calculate frequencies of submissions
@@ -68,34 +68,43 @@ def veranstaltungen_to_text(abschluss):
     """
     file_text = ""
     for name, bereich in abschluss:
+        print("Processing lectures for {}".format(name))
         ids_ = set(vorlesungen[vorlesungen.Bereich == bereich].Ids)
         if len(ids_) == 0:
             continue
-        file_text += "{}:\n".format(name)
-        file_text += "-" * (len(name) + 1) + "\n"
+        file_text += "### {}:\n".format(name)
+        # file_text += "-" * (len(name) + 1) + "\n"
         for id_ in ids_:
-            vorlesung = vorlesungen[vorlesungen.Bereich == bereich][vorlesungen.Ids == id_]
-            file_text += "    Veranstaltung: {}\n".format(list(vorlesung.Titel)[0])
-            file_text += "    Dozent: {}\n".format(list(vorlesung.Dozent)[0])
-            file_text +="    Campuslink: {}\n".format(list(vorlesung.Url)[0])
-            comments = [comment for comment in vorlesung.Bemerkung if not str(comment) == "nan"]
+            vorlesungen_modul = vorlesungen[vorlesungen.Bereich == bereich]
+            vorlesung = vorlesungen_modul[vorlesungen_modul.Ids == id_]
+            file_text += "#### {}\n".format(list(vorlesung.Titel)[0])
+            file_text += "**Dozent:** {}  \n\n".format(list(vorlesung.Dozent)[0])
+            file_text += "**Campus:** [{}]({})  \n\n".format(list(vorlesung.Url)[0], list(vorlesung.Url)[0])
+            comments = [comment for comment in vorlesung.Bemerkung if isinstance(comment, str)]
             if len(comments) != 0:
-                file_text += "    Bemerkungen:\n"
+                file_text += "**Bemerkungen:**  \n\n"
                 for comment in vorlesung.Bemerkung:
-                    file_text +="      - {}\n".format(comment)
+                    if isinstance(comment, str):
+                        file_text +="> {}  \n\n".format(comment)
             file_text += "\n"
     return file_text
 
 
-with open(os.path.join(OUTPUT, "liste.txt"), "w") as f:
+with open(os.path.join(OUTPUT, "liste.md"), "w") as f:
+    f.write("# Veranstaltungen SoSe 2017\n")
+    f.write("![](output/frequency.png)  \n\n")
     # Generate list for bachelor lectures
-    f.write("Veranstaltungen für den Bachelor:\n")
-    f.write("=================================\n")
+    print("Processing lectures for bachelor")
+    f.write("## Bachelor  \n")
+    # f.write("=================================\n")
     f.write("\n")
     f.write(veranstaltungen_to_text(bachelor))
+    print("List for bachelor modules generated and saved in {}.".format(os.path.join(OUTPUT, "liste.md")))
 
     # Generate list for master lectures
-    f.write("Veranstaltungen für den Master:\n")
-    f.write("===============================\n")
+    print("Processing lectures for master")
+    f.write("## Master  \n")
+    # f.write("===============================\n")
     f.write("\n")
     f.write(veranstaltungen_to_text(master))
+    print("List for master modules generated and saved in {}.".format(os.path.join(OUTPUT, "liste.md")))
